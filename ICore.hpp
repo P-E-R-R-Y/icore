@@ -27,9 +27,9 @@ class ICore {
  * @brief define the engine interface
  * @interface Engine
  */
-class IEngine : public ICore {
+class IApp : public ICore {
     public:
-        virtual ~IEngine() = default;
+        virtual ~IApp() = default;
 
     protected:
 
