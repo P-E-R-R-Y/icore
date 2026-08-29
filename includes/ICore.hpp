@@ -70,7 +70,13 @@ class ITickable {                // ça se fait ticker par quelqu'un
  *         void display() override { ... }
  *     };
  */
-class IApp : public ICore, protected ITickable {
+/* ITickable est PUBLIC, et c'est ce qui permet a une borne d'heberger un
+ * jeu. En protege, elle ne pouvait qu'appeler run() - qui ne rend jamais la
+ * main - et perdait le controle jusqu'a ce que le jeu decide de sortir.
+ *
+ * Une IApp sait donc faire les deux : tourner seule par run(), ou se faire
+ * ticker etape par etape par quelqu'un d'autre. */
+class IApp : public ICore, public ITickable {
     public:
         virtual ~IApp() = default;
 
@@ -111,7 +117,16 @@ class IApp : public ICore, protected ITickable {
 //        virtual void display() = 0;
 
     private:
-        bool _running = false;
+        /* VRAI des la construction, pas seulement dans run().
+         *
+         * Une IApp hebergee ne passe jamais par run() : c'est son hote qui
+         * appelle event/update/display. Si le drapeau n'etait leve que la,
+         * elle naitrait "deja arretee" et l'hote la fermerait au tick
+         * suivant.
+         *
+         * running() devient ainsi lisible dans les deux modes, et stop()
+         * garde le meme sens : je demande a m'arreter. */
+        bool _running = true;
         int _exitCode = 0;
 };
 
