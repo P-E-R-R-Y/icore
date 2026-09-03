@@ -1,14 +1,15 @@
-# icore — journal
+# icore — changelog
 
-Marqueurs : 🟢 ajout · 🔴 rupture · 🔵 correctif · ⚪ interne ou doc · 🟡 propose
-dans le plan, code non ecrit.
+Markers: 🟢 added · 🔴 breaking · 🔵 fix · ⚪ internal or docs · 🟡 proposed
+in the plan, no code written yet.
 
 ## v0.1.0
 
 - 🟢 `ICore`, `IApp`, `IAppModule`, `ITickable`
-- 🟢 `launch<T>()` construit, `run()`, detruit **avant** de rendre le
-  code de sortie, pour que les dll se ferment proprement
-- 🟢 26 tests, dont la trace d'ordre et `LaunchDestroysBeforeReturning`
-- ⚪ le tag `v1` (non-semver) est supprime, remplace par `v0.1.0` :
-  aucune release GitHub, aucun consommateur ne le nommait — dernier
-  moment ou ce geste etait gratuit
+- 🟢 `launch<T>()` builds, `run()`s, destroys **before** returning the
+  exit code, so dlls close cleanly
+- 🟢 26 tests, including the ordering trace and
+  `LaunchDestroysBeforeReturning`
+- ⚪ the non-semver `v1` tag is deleted, replaced with `v0.1.0` — no
+  GitHub release referenced it, no consumer pinned it — last moment this
+  was free
