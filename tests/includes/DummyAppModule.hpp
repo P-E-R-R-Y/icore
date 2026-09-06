@@ -19,12 +19,12 @@ class DummyAppModule : public IAppModule {
     public:
         int made = 0;
         int freed = 0;
-        IModuleRegistry *received = nullptr;
+        IModuleManager *received = nullptr;
 
         const char *type() const override { return IAppModule::contract; }
         const char *name() const override { return "faux"; }
 
-        IApp *createApp(IModuleRegistry &modules) override
+        IApp *createApp(IModuleManager &modules) override
         {
             made++;
             received = &modules;

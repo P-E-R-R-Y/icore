@@ -13,62 +13,46 @@
 
 #include "ICore.hpp"
 #include "IModule.hpp"
-#include "IModuleRegistry.hpp"
+#include "IModuleManager.hpp"
 
 /**
  * @class IAppModule
- * @brief The factory a loadable application exports.
+ * @brief La fabrique qu'exporte une application chargeable.
  *
- * One module type covers every case, because IApp already IS an ICore and
- * IS an ITickable. The host decides how to read what it gets back :
- *
- * - as an ICore, it calls run() and hands over the whole loop,
- * - as an ITickable, it calls event()/update()/display() itself and keeps
- *   the loop.
- *
- * The second is the interesting one : several applications ticked by the
- * same host, sharing one window and one frame.
+ * L'hote lit ce qu'il recupere comme il veut : en ICore il appelle run() et
+ * cede sa boucle, en ITickable il appelle event()/update()/display() et
+ * garde la sienne.
  *
  *     modules.Load("./game.so", "game");
- *     auto *app = modules.Get<IAppModule>("game")->createApp(everything);
- *     while (window->isOpen())
- *         app->...   // ticked by the host
+ *     IApp *app = modules.Get<IAppModule>("game")->createApp(modules);
  */
 class IAppModule : public IModule {
 
 public:
-    /// Symbol the loader looks up : present = this library holds an application
+    /// Le symbole que le chargeur cherche.
     static constexpr const char *entry = "getAppModule";
 
     /// Ce que type() doit rendre.
     static constexpr const char *contract = "game";
 
-    /** @brief Aucune sous-famille pour l'instant. */
+    /// Les contrats que ce type accepte.
     static constexpr const char *accepts[] = {"game", nullptr};
 
     virtual ~IAppModule() = default;
 
     /**
-     * @brief Builds the application on top of everything already loaded.
+     * @brief Construit l'application.
      *
-     * A LIVE registry, not a snapshot : the application re-reads it whenever
-     * it needs to, so a vendor swapped at runtime is seen. Handing a
-     * std::vector instead would freeze the state at creation, and the
-     * pointers in it would dangle the moment a library is unloaded.
-     *
-     * The registry rather than the manager itself, because ModuleManager is
-     * a template and a dll compiled apart cannot name it.
-     *
-     * Passed at construction, like an ITexture is to an ISprite : the link
-     * can never be missing.
+     * Le manager lui est donne vivant, pas en instantane : elle y relit ce
+     * qui est charge quand elle en a besoin.
      *
      * @param modules
      * @return IApp*
      */
-    virtual IApp *createApp(IModuleRegistry &modules) = 0;
+    virtual IApp *createApp(IModuleManager &modules) = 0;
 
     /**
-     * @brief Destroys it. The dll that allocated it is the one that frees it.
+     * @brief La detruit. Toujours par la bibliotheque qui l'a construite.
      *
      * @param app
      */
