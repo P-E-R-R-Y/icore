@@ -13,7 +13,7 @@
 #include "DummyApp.hpp"
 #include "DummyAppModule.hpp"
 #include "DummyCli.hpp"
-#include "DummyRegistryStub.hpp"
+#include "IModuleManager.hpp"
 
 /* ---- ICore : une action ------------------------------------------- */
 
@@ -169,7 +169,7 @@ TEST(AppModule, AnnouncesTheGameContract)
 TEST(AppModule, HandsTheGameTheRegistry)
 {
     DummyAppModule module;
-    DummyRegistryStub registry;
+    IModuleManager registry;
 
     IApp *app = module.createApp(registry);
 
@@ -187,7 +187,7 @@ TEST(AppModule, HandsTheGameTheRegistry)
 TEST(AppModule, CreateAndDeletePairUp)
 {
     DummyAppModule module;
-    DummyRegistryStub registry;
+    IModuleManager registry;
 
     for (int i = 0; i < 3; i++)
         module.deleteApp(module.createApp(registry));

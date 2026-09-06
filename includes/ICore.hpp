@@ -12,15 +12,12 @@
 
 /**
  * @interface ICore
- * @brief Le contrat minimal : ca se lance, ca rend un code de sortie.
+ * @brief Ca se lance, ca rend un code de sortie. Pas forcement une boucle.
  *
- * Volontairement PAS une boucle : une CLI, un batch, un script font une
- * action et s'arretent. Le lanceur ne fait aucune difference entre les deux.
+ * L'init est le constructeur, le nettoyage le destructeur.
  *
  *     class MyCli : public ICore {
- *     public:
- *         MyCli(int argc, char **argv) { ... }   // l'init EST le constructeur
- *         ~MyCli() override { ... }              // le nettoyage, le destructeur
+ *         MyCli(int argc, char **argv) { ... }
  *         int run() override { ...; return 0; }
  *     };
  */
@@ -35,16 +32,16 @@ class ICore {
         virtual int run() = 0;
 };
 
-class ITickable {                // ça se fait ticker par quelqu'un
+/**
+ * @interface ITickable
+ * @brief Ce qui se fait ticker par quelqu'un d'autre, frame par frame.
+ *
+ * L'ordre est event(), puis update(), puis display().
+ */
+class ITickable {
     public:
         virtual ~ITickable() = default;
 
-        /**
-         * @brief Une frame de l'application.
-         *
-         * L'ordre est event() puis update() puis display(). Le tickeur ne
-         * fait pas de rendu : il ne sait pas ce qu'est un "display".
-         */
         virtual void event() = 0;
         virtual void update() = 0;
         virtual void display() = 0;
@@ -52,38 +49,24 @@ class ITickable {                // ça se fait ticker par quelqu'un
 
 /**
  * @class IApp
- * @brief Une application a boucle.
+ * @brief Une application a boucle. Elle tourne seule, ou se fait ticker.
  *
- * `run()` est ECRIT ici : c'est du code, pas une promesse de plus. On en
- * herite pour remplir event / update / display, et rien d'autre.
- *
- * Il n'y a pas d'`init()` ni de `destroy()` : ce sont le constructeur et le
- * destructeur. Un objet qui existe est un objet pret.
+ * On en herite pour remplir event / update / display.
  *
  *     class MyApp : public IApp {
- *     public:
- *         MyApp() { ... }              // init
- *         ~MyApp() override { ... }    // destroy
- *     protected:
  *         void event() override   { ... }
  *         void update() override  { if (done) stop(); }
  *         void display() override { ... }
  *     };
- */
-/* ITickable est PUBLIC, et c'est ce qui permet a une borne d'heberger un
- * jeu. En protege, elle ne pouvait qu'appeler run() - qui ne rend jamais la
- * main - et perdait le controle jusqu'a ce que le jeu decide de sortir.
  *
- * Une IApp sait donc faire les deux : tourner seule par run(), ou se faire
- * ticker etape par etape par quelqu'un d'autre. */
+ * ITickable est publiquement herite : c'est ce qui permet a un hote de la
+ * piloter frame par frame au lieu de lui ceder la boucle.
+ */
 class IApp : public ICore, public ITickable {
     public:
         virtual ~IApp() = default;
 
-        /**
-         * @brief La boucle. Non redefinissable : c'est ce qui rend le cycle
-         *        previsible d'une application a l'autre.
-         */
+        /** @brief La boucle, jusqu'a stop(). Non redefinissable. */
         int run() final {
             _running = true;
             while (_running) {
@@ -103,44 +86,23 @@ class IApp : public ICore, public ITickable {
             _exitCode = code;
         }
 
-        /** @brief La boucle tourne-t-elle ? */
+        /** @brief Vrai des la construction, faux apres stop(). */
         bool running() const { return _running; }
 
-//    protected:
-//        /** @brief Les entrees : clavier, requetes, reseau... */
-//        virtual void event() = 0;
-//
-//        /** @brief La logique. Elle tourne meme sans affichage. */
-//        virtual void update() = 0;
-//
-//        /** @brief Le rendu. */
-//        virtual void display() = 0;
-
     private:
-        /* VRAI des la construction, pas seulement dans run().
-         *
-         * Une IApp hebergee ne passe jamais par run() : c'est son hote qui
-         * appelle event/update/display. Si le drapeau n'etait leve que la,
-         * elle naitrait "deja arretee" et l'hote la fermerait au tick
-         * suivant.
-         *
-         * running() devient ainsi lisible dans les deux modes, et stop()
-         * garde le meme sens : je demande a m'arreter. */
+        /* Vrai des la construction : une IApp hebergee ne passe jamais par
+         * run(), elle naitrait sinon deja arretee. */
         bool _running = true;
         int _exitCode = 0;
 };
 
 /**
- * @brief Construit puis lance. Les arguments sont transmis TELS QUELS au
- *        constructeur : argc/argv, une config, ou rien.
- *
- * Le main devient identique pour une action ou une boucle :
+ * @brief Construit, lance, detruit. Les arguments vont au constructeur.
  *
  *     int main(int argc, char **argv) { return launch<MyCli>(argc, argv); }
  *     int main()                      { return launch<MyApp>(); }
  *
- * L'objet meurt AVANT le retour : le destructeur a fini de tourner quand le
- * code de sortie remonte au systeme.
+ * L'objet est detruit avant que le code de sortie ne remonte.
  */
 template <typename T, typename... Args>
 int launch(Args &&...args) {

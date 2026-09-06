@@ -3,6 +3,11 @@
 Markers: 🟢 added · 🔴 breaking · 🔵 fix · ⚪ internal or docs · 🟡 proposed
 in the plan, no code written yet.
 
+## v0.2.0
+
+- 🔴 `IAppModule::createApp()` prend un `IModuleManager &` : `IModuleRegistry`
+  n'existe plus, imodule v0.2.0 l'a absorbe avec le depot `modulemanager`.
+
 ## v0.1.0
 
 - 🟢 `ICore`, `IApp`, `IAppModule`, `ITickable`
